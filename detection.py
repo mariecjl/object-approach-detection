@@ -4,6 +4,7 @@ import numpy as np
 def detect_approach(depth, depth_buffer, frame_shape, config):
     h, w = frame_shape
 
+    #depth change based off of average of previous depths
     prev_depth = np.mean(list(depth_buffer)[:-1], axis=0)
     delta = depth - prev_depth
 
@@ -17,12 +18,12 @@ def detect_approach(depth, depth_buffer, frame_shape, config):
     # center mask
     cx, cy = w // 2, h // 2
     rx, ry = int(w * config.CENTER_WEIGHT_RADIUS), int(h * config.CENTER_WEIGHT_RADIUS)
-
     center_mask = np.zeros((h, w), dtype=np.uint8)
     center_mask[cy - ry:cy + ry, cx - rx:cx + rx] = 1
 
     depth_near = depth > np.percentile(depth, 70)
 
+    #approach mask
     approach_mask = (
         (delta > adaptive_thresh) &
         (delta_smooth > adaptive_thresh * 0.8) &
@@ -30,13 +31,16 @@ def detect_approach(depth, depth_buffer, frame_shape, config):
         center_mask
     ).astype(np.uint8) * 255
 
+
+
+    #image cleanup + object extraction
     kernel = np.ones((7, 7), np.uint8)
     approach_mask = cv2.morphologyEx(approach_mask, cv2.MORPH_CLOSE, kernel)
-
     contours, _ = cv2.findContours(
         approach_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
     )
 
+    #tresholds based off of minimum area (to avoid noise)
     min_area = config.MIN_AREA_RATIO * (h * w)
     main_cnt = max(
         (c for c in contours if cv2.contourArea(c) > min_area),
