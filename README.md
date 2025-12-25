@@ -1,3 +1,5 @@
+https://github.com/mariecjl/object-approach-detection/blob/main/DEMO.gif
+
 ABOUT: "Real-time object approach detection through PyTorch's MiDaS monocular depth estimation and OpenCV (live video stream). Computes per-frame depth maps, smooths temporal noise, and detects approaching objects with spatial filtering + temporal confirmation."
 
 Real-time object approach detection system using a webcam and monocular depth estimation from MiDaS.
